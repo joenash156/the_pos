@@ -54,6 +54,16 @@ export const createUserSchema = z.object({
   role: z.enum(["admin", "cashier"]).optional(),
 });
 
+export const loginUserSchema = z.object({
+  email: z
+    .email("Invalid email address")
+    .transform(email => email.toLowerCase()),
+
+  password: z
+    .string()
+    .min(1, "Password is required"),
+});
+
 export const updateUserProfileSchema = z
   .object(userBaseSchema)
   .partial();
