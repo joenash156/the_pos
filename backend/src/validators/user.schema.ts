@@ -32,10 +32,6 @@ const userBaseSchema = {
     .string()
     .regex(/^\+?[0-9]{9,15}$/, "Invalid phone number")
     .optional(),
-
-  avatar_url: z.string().url("Invalid avatar URL").optional(),
-
-  theme_preference: z.enum(["light", "dark"]).optional(),
 };
 
 
@@ -69,9 +65,25 @@ export const updateUserProfileSchema = z
   .partial();
 
 export const changePasswordSchema = z.object({
-  oldPassword: z.string().min(8),
-  newPassword: z.string().min(8),
+  current_password: z.string().min(8),
+  new_password: z.string().min(8),
 });
+
+export const changeAvatarSchema = z.object({
+  avatar_url: z
+    .url("Invalid avatar URL"),
+});
+
+export const changeThemePreferenceSchema = z.object({
+  theme_preference: z
+    .enum(["light", "dark"])
+})
+
+export const deleteUserSchema = z.object({
+  password: z
+    .string()
+    .min(1, "Password is required"),
+})
 
 export const approveUserSchema = z.object({
   is_approved: z.boolean(),
