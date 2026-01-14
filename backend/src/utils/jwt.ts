@@ -3,7 +3,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 interface TokenPayload {
   id: string;
   email: string;
-  role: string;
+  role: 'admin' | 'cashier';
 }
 
 const ACCESS_TOKEN_SECRET_KEY = process.env.JWT_ACCESS_TOKEN_SECRET as string;
