@@ -1,5 +1,6 @@
 import express from "express";
 import usersRouter from "./routes/usersRoutes";
+import adminRouter from "./routes/adminRoutes";
 import "./configs/database"; 
 import cookieParser from "cookie-parser";
 
@@ -11,6 +12,7 @@ app.use(cookieParser());
 
 // API routes
 app.use("/user", usersRouter)
+app.use("admin", adminRouter);
 
 
 app.listen(PORT, () => {

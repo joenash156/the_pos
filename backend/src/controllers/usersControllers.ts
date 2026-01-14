@@ -101,10 +101,11 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // enforces cashiers only but not admins approval before login
     if(user.role !== "admin" && !user.is_approved) {
       res.status(403).json({
         success: false,
-        error: "User account pending approval. Be sure your administrator approves you!",
+        error: "Cashier account pending approval. Be sure your administrator approves you!",
       });
       return;
     }
