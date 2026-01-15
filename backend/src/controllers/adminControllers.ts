@@ -1,6 +1,7 @@
 import db from "../configs/database";
 import { Request, Response } from "express"
 import { RowDataPacket } from "mysql2";
+import { isUUID } from "../utils/checkID";  
 
 
 // controller to get all cashiers
@@ -57,3 +58,54 @@ export const getAllCashiers = async (req: Request, res: Response): Promise<void>
     });
   }
 };
+
+// controller get a user by id
+export const getCashiersById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // get id from request params
+    const  { id } = req.params;
+
+    // check if there is an id at ll
+    if (typeof id !== "string") {
+      res.status(400).json({
+        success: false,
+        error: "Valid user id is required",
+      });
+      return;
+    }
+
+    // check if the id provided is a uuid
+    if(!isUUID(id)) {
+      res.status(400).json({
+        success: false,
+        error: "Invalid user id"
+      });
+      return;
+    }
+
+    // get user details from the database
+    const [rows] = await db.query<RowDataPacket[]>("SELECT id, firstname, lastname, othername, email, phone, other_phone, is_approved, role, last_login_at, is_profile_complete, created_at FROM users WHERE id = ? AND role = ?", [id, "cashier"]);
+
+    if(rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: "Cashier not found!"
+      });
+      return;
+    }
+  
+    res.status(200).json({
+      success: true,
+      message: "User found!✅",
+      user: rows[0]
+    });
+    return;    
+
+  } catch(err: unknown) {
+      console.error("Failed fetching cashier:", err);
+      res.status(500).json({
+        success: false,
+        error: "Internal server error while fetching cashier"
+      });
+  }
+}
