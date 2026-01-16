@@ -143,7 +143,7 @@ export const getCategoryById = async (req: Request, res: Response): Promise<void
   }
 }
 
-// controller to update category
+// controller to update a category
 export const updateCategory = async (req: Request, res: Response): Promise<void> => {
   try{
     // get id from request params
@@ -235,6 +235,65 @@ export const updateCategory = async (req: Request, res: Response): Promise<void>
       res.status(500).json({
         success: false,
         error: "Internal server error while updating category"
+      });
+      return;
+  }
+}
+
+// controller to delete a category
+export const deleteCategory = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // get id from request params
+    const { id } = req.params;
+
+    // check if category exists
+    const [rows] = await db.query<RowDataPacket[]>("SELECT id, name FROM categories WHERE id = ?", [id]);
+
+    if(rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: "No category found to delete",
+      });
+      return;
+    }
+
+    // check if any product is using the category
+    const [prod] = await db.query<RowDataPacket[]>("SELECT name FROM products WHERE category_id = ?", [id]);
+
+    if(prod.length > 0) {
+      res.status(409).json({
+        success: false,
+        error: "Category cannot be deleted because it is used by existing products"
+      });
+      return;
+    }
+
+    // delete category from database
+    const [result] = await db.query<ResultSetHeader>("DELETE FROM categories WHERE id = ?", [id]);
+
+    if(result.affectedRows === 0) {
+      res.status(404).json({
+        success: false,
+        error: "Unable to delete category"
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Category deleted successfully!✅",
+      category: {
+        id,
+        name: rows[0]?.name
+      }
+    });
+    return;    
+
+  } catch(err: unknown) {
+      console.error("Failed to delete category: ", err);
+      res.status(500).json({
+        success: false,
+        error: "Internal server error while deleting category"
       });
       return;
   }

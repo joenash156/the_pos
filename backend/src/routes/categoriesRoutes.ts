@@ -1,7 +1,7 @@
 import express, { Router } from "express";
 import { requireAuth } from "../middlewares/auth.middleware";
 import { requireAdmin } from "../middlewares/role.middleware";
-import { createCategory, getAllCategories, getCategoryById, updateCategory } from "../controllers/categoriesControllers";
+import { createCategory, deleteCategory, getAllCategories, getCategoryById, updateCategory } from "../controllers/categoriesControllers";
 import { validateUUID } from "../middlewares/uuidValidation.middleware";
 
 
@@ -16,8 +16,12 @@ router.get("/get_all", requireAuth, getAllCategories);
 // router to get a category (only executed by authenticated users)
 router.get("/:id", requireAuth, validateUUID, getCategoryById);
 
-// router to update category (only executed by admins)
+// router to update a category (only executed by admins)
 router.patch("/:id/update", requireAuth, requireAdmin, validateUUID, updateCategory);
+
+// router to delete a category (only executed by admins)
+router.delete("/:id/delete", requireAuth, requireAdmin, validateUUID, deleteCategory);
+
 
 
 export default router;
