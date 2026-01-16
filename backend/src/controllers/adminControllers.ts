@@ -10,12 +10,7 @@ export const getAllCashiers = async (req: Request, res: Response): Promise<void>
   try {
     const { is_approved, search, sortBy } = req.query;
 
-    let query = `
-      SELECT 
-        id, firstname, lastname, othername, email, phone, other_phone, 
-        is_approved, role, last_login_at, is_profile_complete, created_at
-      FROM users
-      WHERE role = ?`;
+    let query = `SELECT id, firstname, lastname, othername, email, phone, other_phone, is_approved, role, last_login_at, is_profile_complete, created_at FROM users WHERE role = ?`;
 
     const params: (string | number)[] = ["cashier"];
 
@@ -50,6 +45,7 @@ export const getAllCashiers = async (req: Request, res: Response): Promise<void>
       message: "Cashiers fetched successfully!✅",
       cashiers
     });
+    return;
 
   } catch (err: unknown) {
     console.error("Failed fetching all cashiers:", err);
