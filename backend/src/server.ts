@@ -13,6 +13,7 @@ app.use(cookieParser());
 // API routes
 app.use("/user", usersRouter)
 app.use("/admin", adminRouter);
+app.use("/category")
 
 
 app.listen(PORT, () => {

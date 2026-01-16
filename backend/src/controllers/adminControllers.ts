@@ -259,18 +259,10 @@ export const updateUserRole = async (req: Request, res: Response): Promise<void>
   try {
     const { id } = req.params;
     
+    // validate role from request body
     const validatedUserData = updateUserRoleSchema.parse(req.body);
 
     const { role } = validatedUserData;
-
-    // Validate role
-    if (!role || (role !== "admin" && role !== "cashier")) {
-      res.status(400).json({
-        success: false,
-        error: "Valid role is required: 'admin' or 'cashier'",
-      });
-      return;
-    }
 
     // Check if user exists
     const [rows] = await db.query<RowDataPacket[]>(
