@@ -8,6 +8,6 @@ export const rateLimiter = rateLimit({
   legacyHeaders: false,  
   message: {
     success: false,
-    error: "Too many requests, please try again later",
+    error: "Too many requests, please try again later!",
   },
 });

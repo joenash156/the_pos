@@ -48,7 +48,12 @@ export const createUserSchema = z.object({
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
-    .max(100),
+    .max(100)
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character")
+    .regex(/^\S+$/, "Password must not contain spaces"),
 });
 
 export const loginUserSchema = z.object({
@@ -67,8 +72,18 @@ export const updateUserProfileSchema = z
   .partial();
 
 export const changePasswordSchema = z.object({
-  current_password: z.string().min(8),
-  new_password: z.string().min(8),
+  current_password: z
+    .string()
+    .min(1, "Current password is required"),
+  new_password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(100)
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character")
+    .regex(/^\S+$/, "Password must not contain spaces"),
 });
 
 export const changeAvatarSchema = z.object({
