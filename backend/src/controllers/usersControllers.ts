@@ -32,7 +32,7 @@ export const createUser = async (req: Request, res:Response): Promise<void> => {
     const hashedPassword = await hashItem(password);
     
     // insert user into the database
-    await db.query<ResultSetHeader>("INSERT INTO users (firstname, lastname, othername, email, password_hash) VALUES (?, ?, ?, ?, ?)", [firstname, lastname, othername ?? null, email, hashedPassword]);
+    await db.query<ResultSetHeader>("INSERT INTO users (firstname, lastname, othername, email, password_hash) VALUES (?, ?, ?, ?, ?)", [firstname, lastname, othername || null, email, hashedPassword]);
 
     // return user initial user info
     res.status(201).json({

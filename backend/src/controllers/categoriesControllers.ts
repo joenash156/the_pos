@@ -25,7 +25,7 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
     }
 
     // insert category into database since it does not exist
-    await db.query<ResultSetHeader>("INSERT INTO categories (name, description) VALUES (?, ?)", [name, description ?? null]);
+    await db.query<ResultSetHeader>("INSERT INTO categories (name, description) VALUES (?, ?)", [name, description || null]);
 
     res.status(201).json({
       success: true,
