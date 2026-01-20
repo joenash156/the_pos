@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import { changePassword, changeThemePreference, createUser, deleteUser, generateNewAccessToken, getUserProfile, loginUser, logoutUser, updateUserProfile, verifyEmail } from "../controllers/usersControllers";
+import { changePassword, changeThemePreference, createUser, deleteUser, generateNewAccessToken, getUserProfile, loginUser, logoutUser, resendVerificationEmail, updateUserProfile, verifyEmail } from "../controllers/usersControllers";
 import { requireAuth } from "../middlewares/auth.middleware";
 
 
@@ -10,6 +10,9 @@ router.post("/signup", createUser);
 
 // router to verify email
 router.get("/verify_email", verifyEmail)
+
+// router to resend verification email
+router.post("/resend_verification_email", resendVerificationEmail)
 
 // router to login in user
 router.post("/login", loginUser);

@@ -8,6 +8,7 @@ import { ZodError } from "zod";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/jwt";
 import { generateToken } from "../utils/generateToken";
 import { sendVerificationEmail } from "../emails/emails";
+import { resendVerificationSchema } from "../validators/mailer.schema";
 
 // controller to create/insert/signup new user
 export const createUser = async (req: Request, res:Response): Promise<void> => {
@@ -135,6 +136,70 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 }
+
+// controller to resend verification email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const validatedUserData = resendVerificationSchema.parse(req.body);
+
+    const { email } = validatedUserData;
+
+    const [rows] = await db.query<RowDataPacket[]>("SELECT id, firstname, is_email_verified FROM users WHERE email = ?", [email]);
+
+    if (rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: "No account found with this email",
+      });
+      return;
+    }
+
+    // prevent resending if already verified
+    if (rows[0]!.is_email_verified) {
+      res.status(400).json({
+        success: false,
+        error: "Email is already verified",
+      });
+      return;
+    }
+
+    // generate new verification token
+    const { plainToken, tokenHash } = await generateToken();
+   
+    const emailVerifyExpires = new Date(Date.now() + 20 * 60 * 1000);
+
+    // update token in DB (invalidate old one)
+    await db.query<ResultSetHeader>("UPDATE users SET email_verify_token_hash = ?, email_verify_expires = ? WHERE id = ?", [tokenHash, emailVerifyExpires, rows[0]!.id]);
+
+
+    // send verification email
+    await sendVerificationEmail(email, rows[0]!.firstname, plainToken)
+
+    res.status(200).json({
+      success: true,
+      message: "Verification email resent successfully!✅",
+    });
+    return;
+
+  } catch (err) {
+      // check if the error comes from zod
+      if (err instanceof ZodError) {
+        res.status(400).json({
+          success: false,
+          error: "Invalid request data",
+          issues: err.issues,
+        });
+        return;
+      } 
+
+      console.error("Failed to resend verification email:", err);
+      res.status(500).json({
+        success: false,
+        error: "Internal server error",
+      });
+      return;
+    }
+};
 
 // controller to login user
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
@@ -266,7 +331,7 @@ export const getUserProfile = async (req: Request, res: Response): Promise<void>
     }
 
     // fetch user info/details/profile from the database
-    const [rows] = await db.query<RowDataPacket[]>("SELECT id, firstname, lastname, othername, email, phone, other_phone, avatar_url, theme_preference, is_approved, role, last_login_at, is_profile_complete, created_at, updated_at FROM users WHERE id = ? LIMIT 1", [userId]);
+    const [rows] = await db.query<RowDataPacket[]>("SELECT id, firstname, lastname, othername, email, is_email_verified, phone, other_phone, avatar_url, theme_preference, is_approved, role, last_login_at, is_profile_complete, created_at, updated_at FROM users WHERE id = ? LIMIT 1", [userId]);
 
     if(rows.length === 0) {
       res.status(404).json({
