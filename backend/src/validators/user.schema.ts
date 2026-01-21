@@ -105,3 +105,10 @@ export const deleteUserSchema = z.object({
 export const updateUserRoleSchema = z.object({
   role: z.enum(["admin", "cashier"]),
 });
+
+export const forgotPasswordSchema = z.object({
+  email: z
+    .email("Invalid email address")
+    .trim()
+    .transform(email => email.toLowerCase()),
+})

@@ -3,11 +3,11 @@ import crypto from "crypto";
 import db from "../configs/database";
 import { Request, Response } from "express"
 import { ResultSetHeader, RowDataPacket } from "mysql2";
-import { changePasswordSchema, changeThemePreferenceSchema, createUserSchema, deleteUserSchema, loginUserSchema, updateUserProfileSchema } from "../validators/user.schema";
+import { changePasswordSchema, changeThemePreferenceSchema, createUserSchema, deleteUserSchema, forgotPasswordSchema, loginUserSchema, updateUserProfileSchema } from "../validators/user.schema";
 import { ZodError } from "zod";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/jwt";
 import { generateToken } from "../utils/generateToken";
-import { sendVerificationEmail } from "../emails/emails";
+import { sendResetPasswordEmail, sendVerificationEmail } from "../emails/emails";
 import { resendVerificationSchema } from "../validators/mailer.schema";
 
 // controller to create/insert/signup new user
@@ -542,6 +542,60 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
       res.status(500).json({
         success: false,
         error: "Failed to change user password. Internal server error",
+      });
+      return;
+    }
+}
+
+// controller for forgot password
+export const forgotPassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // validate user request body
+    const validatedUserData = forgotPasswordSchema.parse(req.body);
+    const { email } = validatedUserData;
+
+    // check if user exists
+    const [rows] = await db.query<RowDataPacket[]>("SELECT id, firstname FROM users WHERE email = ?", [email]);
+
+    // return success (prevents email enumeration)
+    if (rows.length === 0) {
+      res.status(200).json({
+        success: true,
+        message: "If this email exists, a reset link has been sent✅.",
+      });
+      return;
+    }
+
+    // generate reset token
+    const { plainToken, tokenHash } = await generateToken();
+
+    const resetExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+    // store hashed token
+    await db.query("UPDATE users SET password_reset_token_hash = ?, password_reset_expires = ? WHERE id = ?", [tokenHash, resetExpires, rows[0]!.id]);
+
+    // send email
+    await sendResetPasswordEmail(email, rows[0]!.firstname, plainToken);
+
+    res.status(200).json({
+      success: true,
+      message: "If this email exists, a reset link has been sent✅.",
+    });
+
+  } catch(err: unknown) {
+      if (err instanceof ZodError) {
+        res.status(400).json({
+          success: false,
+          error: "Invalid request data",
+          issues: err.issues,
+        });
+        return;
+      }
+
+      console.error("Failed to route forgot password:", err);
+      res.status(500).json({
+        success: false,
+        error: "Failed to route forgot password. Internal server error",
       });
       return;
     }
