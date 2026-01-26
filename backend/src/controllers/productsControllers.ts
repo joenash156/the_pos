@@ -44,7 +44,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
         category_id,
         name,
         description,
-        price,
+        price: Number(price),
         stock,
         category_name: categoryRows[0]!.name,
         image_url: image_url || null,
@@ -177,7 +177,10 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
       success: true,
       message: "Product found!✅",
       count: 1,
-      product: rows[0]
+      product: {
+        ...rows[0],
+        price: Number(rows[0]!.price)
+      }
     });
     return;
 
@@ -295,7 +298,10 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
       success: true,
       message: "product updated successfully!✅",
       count: 1,
-      product: updatedProduct[0]
+      product: {
+        ...updatedProduct[0],
+        price: Number(updatedProduct[0]!.price)
+      }
     });
     return;
 

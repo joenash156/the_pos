@@ -10,7 +10,7 @@ export const createSaleSchema = z.object({
       z.object({
         product_id: z
           .string()
-          .refine((id) => isUUID(id), { message: "Invalid category ID" }),
+          .refine((id) => isUUID(id), { message: "Invalid product ID" }),
 
         quantity: z
           .number()

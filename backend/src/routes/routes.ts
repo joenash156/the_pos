@@ -11,6 +11,6 @@ router.use("/user", usersRouter);
 router.use("/admin", adminRouter);
 router.use("/category", categoriesRouter);
 router.use("/product", productsRouter)
-router.use("/sales", salesRouter)
+router.use("/sale", salesRouter)
 
 export default router;
