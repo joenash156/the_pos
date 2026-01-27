@@ -7,6 +7,7 @@ import { createSaleSchema } from "../validators/sales.schema";
 import { v4 as uuid } from "uuid";
 import { SaleItemsType } from "../types/types";
 
+
 // controller to create sales
 export const createSale = async (req: Request, res: Response): Promise<void> => {
 
@@ -149,4 +150,67 @@ export const createSale = async (req: Request, res: Response): Promise<void> => 
   } finally {
     connection.release();
   }
+}
+
+// controller to reprint controller
+export const reprintReceipt = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // get the user id, get sales public id from request params
+    const userId = req.user.id;
+    const { public_id } = req.params;
+
+
+    if(!public_id || typeof public_id !== "string") {
+      res.status(400).json({
+        success: false,
+        error: "Valid public id is required!"
+      });
+      return
+    }
+
+    const [saleRows] = await db.query<RowDataPacket[]>("SELECT id, public_id, total, payment_method, created_at FROM sales WHERE public_id = ? AND user_id = ?", [public_id, userId]);
+
+    // check if sale exists
+    if(saleRows.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: "Sale not found!"
+      });
+      return
+    }
+
+    // fetch sale items corresponding the sale
+    const [saleItems] = await db.query<RowDataPacket[]>("SELECT product_name, product_price, quantity, price FROM sale_items WHERE sale_id = ?", [saleRows[0]!.id]);
+
+    if(saleItems.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: "No items found with this sale!"
+      });
+      return;
+    }
+
+    // return items for receipt
+    res.status(200).json({
+      success: true,
+      counts: saleItems.length,
+      message: "Sale is now ready for printing receipt!✅",
+      sale: {
+        public_id: public_id,
+        total: saleRows[0]!.total,
+        payment_method: saleRows[0]!.payment_method,
+        items: saleItems,
+        created_at: saleRows[0]!.created_at
+      }
+    });
+    return;
+
+  } catch(err: unknown) {
+      console.error("Failed to get sale: ", err);
+      res.status(500).json({
+        success: false,
+        error: "Internal server error whiles getting sale!"
+      });
+      return
+    }
 }
